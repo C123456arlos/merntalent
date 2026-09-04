@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend",
-    "start":"npm run start --prefix backend"
+    "start": "npm run start --prefix backend"
   },
   "repository": {
     "type": "git",
@@ -18,8 +18,11 @@
   "bugs": {
     "url": "https://github.com/C123456arlos/merntalent/issues"
   },
-  "engines":{
-    "node":">=20.0.0"
+  "engines": {
+    "node": ">=20.0.0"
   },
-  "homepage": "https://github.com/C123456arlos/merntalent#readme"
+  "homepage": "https://github.com/C123456arlos/merntalent#readme",
+  "dependencies": {
+    "@stream-io/node-sdk": "^0.7.12"
+  }
 }
