@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/C123456arlos/merntalent/issues"
   },
+  "engines":{
+    "node":">=20.0.0"
+  },
   "homepage": "https://github.com/C123456arlos/merntalent#readme"
 }
