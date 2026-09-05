@@ -4,7 +4,7 @@ import Session from "../models/Session.js"
 export async function createSession(req, res) {
     try {
         const { problem, difficulty } = req.body
-        const userId = req.user_id
+        const userId = req.user._id
         const clerkId = req.user.clerkId
         if (!problem || !difficulty) {
             return res.status(400).json({mesage:'problem and difficulty are required'})
@@ -19,7 +19,7 @@ export async function createSession(req, res) {
         })
         const channel= chatClient.channel('messaging', callId, {
             name: `${problem} session`,
-            created_by: clerkId,
+            created_by_id: clerkId,
             members:[clerkId]
         })
         await channel.create()
@@ -31,7 +31,9 @@ export async function createSession(req, res) {
 }
 export async function getActiveSessions(_, res) {
     try {
-        const sessions = await Session.find({ status: 'active' }).populate('host', 'name profileImage email clerkId')
+        const sessions = await Session.find({ status: 'active' })
+            .populate('host', 'name profileImage email clerkId')
+            .populate('participant', 'name profileImage email clerkId')
             .sort({ createdAt: -1 }).limit(20)
         res.status(200).json({sessions})
     } catch (error) {
@@ -42,7 +44,7 @@ export async function getActiveSessions(_, res) {
 export async function getMyRecentSessions(req, res) {
     try {
         const userId = req.user._id
-        const sessions = (await Session.find({ status: 'completed', $or: [{ host: userId }, { participant: userId }] })).toSorted({ createdAt: -1 }).limit(20)
+        const sessions = await Session.find({ status: 'completed', $or: [{ host: userId }, { participant: userId }] }).sort({ createdAt: -1 }).limit(20)
         res.status(200).json({sessions})
     } catch (error) {
         console.log('error in getmyrecentsessions controller', error.message)
