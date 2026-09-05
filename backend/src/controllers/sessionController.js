@@ -68,7 +68,13 @@ export async function joinSession(req, res) {
         const clerkId = req.user.clerkId
         const session = await session.findById(id)
         if (!session) return res.status(404).json({ message: 'session not found' })
-        if(session.participant) return res.status(404).json({message:'session is full'})
+        if (session.status !== 'active') {
+            return res.status(400).json({message:'cannot join a completed session'})
+        }
+        if (session.host.toString() === userId.toString()) {
+            return res.status(400).json({message:'host cannot join their own session as participant'})
+        }
+        if(session.participant) return res.status(409).json({message:'session is full'})
         session.participant = userId
         await session.save()
         const channel = chatClient.channel('messaging', session.callId)
@@ -91,12 +97,12 @@ export async function endSession(req, res) {
         if (session.status === 'completed') {
             return res.status(400).json({message:'session is already completed'})
         }
-        session.status === 'completed'
         await session.save()
         const call = streamClient.video.call('default', session.callId)
         await call.delete({ hard: true })
         const channel = chatClient.channel('messaging', session.callId)
         await channel.delete()
+        session.status === 'completed'
         res.status(200).json({session, message:'session ended successfully'})
     } catch (error) {
         console.log('error in endsession controller', error.message)
