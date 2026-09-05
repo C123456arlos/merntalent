@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/C123456arlos/merntalent#readme",
   "dependencies": {
-    "@stream-io/node-sdk": "^0.7.12"
+    "@stream-io/node-sdk": "^0.7.12",
+    "lucide-react": "^1.41.0"
   }
 }
