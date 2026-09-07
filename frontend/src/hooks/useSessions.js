@@ -17,6 +17,13 @@ export const useActiveSessions = () => {
     })
     return result
 }
+export const useStreamClientData = () => {
+    const result = useQuery({
+        queryKey: ['streamToken'],
+        queryFn:sessionApi.getStreamToken
+    })
+    return result
+}
 export const useMyRecentSessions = () => {
     const result = useQuery({
         queryKey: ['myRecentSessions'],
@@ -33,19 +40,19 @@ export const useSessionById = (id) => {
     })
     return result
 }
-export const useJoinSession = (id) => {
+export const useJoinSession = () => {
     const result = useMutation({
     mutationKey:['joinSession'],
-       mutationFn:()=>sessionApi.joinSession(id),
+       mutationFn:sessionApi.joinSession,
         onSuccess: () => toast.success('joined session successfully'),
    onError:(error)=>toast.error(error.response?.data?.message || 'failed to join session')
 })
     return result
 }
-export const useEndSession = (id) => {
+export const useEndSession = () => {
     const result = useMutation({
     mutationKey:['endSession'],
-       mutationFn:()=>sessionApi.endSession(id),
+       mutationFn:sessionApi.endSession,
         onSuccess: () => toast.success('session ended successfully'),
    onError:(error)=>toast.error(error.response?.data?.message || 'failed to end session')
 })

@@ -44,7 +44,13 @@ export async function getActiveSessions(_, res) {
 export async function getMyRecentSessions(req, res) {
     try {
         const userId = req.user._id
-        const sessions = await Session.find({ status: 'completed', $or: [{ host: userId }, { participant: userId }] }).sort({ createdAt: -1 }).limit(20)
+        const sessions = await Session.find(
+            {
+            status: 'completed'
+            , $or: [{ host: userId }, { participant: userId }]
+        }
+        )
+            // .sort({ createdAt: -1 }).limit(20)
         res.status(200).json({sessions})
     } catch (error) {
         console.log('error in getmyrecentsessions controller', error.message)
@@ -66,21 +72,27 @@ export async function getSessionById(req, res) {
 export async function joinSession(req, res) {
     try {
         const { id } = req.params
+        console.log(id, 'idagg')
         const userId = req.user._id
+        console.log(userId, 'idididuser')
         const clerkId = req.user.clerkId
-        const session = await session.findById(id)
+        const session = await Session.findById(id)
+        console.log(session,'session')
         if (!session) return res.status(404).json({ message: 'session not found' })
-        if (session.status !== 'active') {
-            return res.status(400).json({message:'cannot join a completed session'})
-        }
-        if (session.host.toString() === userId.toString()) {
-            return res.status(400).json({message:'host cannot join their own session as participant'})
-        }
-        if(session.participant) return res.status(409).json({message:'session is full'})
+            if (session.status !== 'active') {
+                return res.status(400).json({message:'cannot join a completed session'})
+            }
+            if (session.host.toString() === userId.toString()) {
+                return res.status(400).json({message:'host cannot join their own session as participant'})
+            }
+            if(session.participant) return res.status(409).json({message:'session is full'})
         session.participant = userId
-        await session.save()
-        const channel = chatClient.channel('messaging', session.callId)
-        await channel.addMembers({ clerkId })
+    await session.save()
+    const channel = chatClient.channel('messaging', session.callId)
+    await channel.addMembers(
+                     [clerkId]
+                     )
+    // await channel.addMembers( clerkId )
         res.status(200).json({session})
     } catch (error) {
         console.log('error in joinsession controller', error.message)
@@ -91,23 +103,57 @@ export async function endSession(req, res) {
     try {
         const { id } = req.params
         const userId = req.user._id
+        console.log(id, 'id')
         const session = await Session.findById(id)
+        console.log(session, 'session')
+        console.log(userId)
         if (!session) return res.status(404).json({ message: 'session not found' })
-        if (session.host.toString() !== userId.tString()) {
+        if (session.host.toString() !== userId.toString()) {
             return res.status(403).json({message:'only the host can end the session'})
         }
         if (session.status === 'completed') {
             return res.status(400).json({message:'session is already completed'})
         }
-        await session.save()
         const call = streamClient.video.call('default', session.callId)
         await call.delete({ hard: true })
         const channel = chatClient.channel('messaging', session.callId)
+        // const channel = chatClient.channel('messaging', userId)
         await channel.delete()
-        session.status === 'completed'
+        await Session.findByIdAndUpdate(id, {status:'completed'})
+        // session.status === completed
+        
+        await session.save()
         res.status(200).json({session, message:'session ended successfully'})
     } catch (error) {
         console.log('error in endsession controller', error.message)
         res.status(500).json({message:'internal server error'})
     }
 }
+// export async function endSession(req, res) {
+//     try {
+//         const { id } = req.params
+//         const userId = req.user._id
+//         console.log(id, 'id')
+//         const session = await Session.findById(id)
+//         console.log(session, 'session')
+//         console.log(userId)
+//         if (!session) return res.status(404).json({ message: 'session not found' })
+//         if (session.host.toString() !== userId.toString()) {
+//             return res.status(403).json({message:'only the host can end the session'})
+//         }
+//         if (session.status === 'completed') {
+//             return res.status(400).json({message:'session is already completed'})
+//         }
+//         await session.save()
+//         const call = streamClient.video.call('default', session.callId)
+//         await call.delete({ hard: true })
+//         const channel = chatClient.channel('messaging', session.callId)
+//         // const channel = chatClient.channel('messaging', userId)
+//         await channel.delete()
+//         session.status === 'completed'
+//         res.status(200).json({session, message:'session ended successfully'})
+//     } catch (error) {
+//         console.log('error in endsession controller', error.message)
+//         res.status(500).json({message:'internal server error'})
+//     }
+// }
